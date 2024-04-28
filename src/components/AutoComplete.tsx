@@ -16,6 +16,7 @@ interface AutoCompleteProps {
 }
 
 function getHighlightedString(str: string, start: number, end: number) {
+	// highlighting matching string with a different color class
 	if (!str) return;
 	const prefix = str.slice(0, start);
 	const middle = str.slice(start, end);
@@ -49,6 +50,7 @@ export default function AutoComplete(props: AutoCompleteProps) {
 	const [init, setInit] = useState(true);
 	const [activeIndex, setActiveIndex] = useState<number>(0);
 
+	// error handling
 	if (items.length && typeof items[0] === 'object' && !inputPath) {
 		throw new Error('inputPath prop is mandatory for list of object types');
 	}
@@ -62,12 +64,29 @@ export default function AutoComplete(props: AutoCompleteProps) {
 	}
 
 	useEffect(() => {
-		/*execute a function when someone clicks in the document:*/
+		// setting listener on document click, to close all the open dropdowns
 		document.addEventListener('click', function () {
 			setList([]);
 			setActiveIndex(0);
 		});
 	}, []);
+
+	useEffect(() => {
+		if (init) {
+			setInit(false);
+			return;
+		}
+		if (!staticList) {
+			updateList(value);
+		}
+	}, [items, staticList, init]);
+
+	useEffect(() => {
+		const ulElem = document.getElementById('item-list');
+		const targetLi = document.getElementById(`li-${activeIndex}`); // id tag of the <li> element
+
+		if (ulElem && targetLi) ulElem.scrollTop = targetLi.offsetTop - 50;
+	}, [activeIndex]);
 
 	function updateList(text: string) {
 		const newMatches: [number, number][] = [];
@@ -79,6 +98,7 @@ export default function AutoComplete(props: AutoCompleteProps) {
 			if (rs) {
 				// adding matching string indexes to matchers array, will be used later to highlight the matching substring
 				newMatches.push([rs.index, rs.index + text.length]);
+				// rs.index = start of the matching substring
 			}
 			return rs;
 		});
@@ -93,37 +113,13 @@ export default function AutoComplete(props: AutoCompleteProps) {
 			);
 	}
 
-	useEffect(() => {
-		if (init) {
-			setInit(false);
-			return;
-		}
-		if (!staticList) {
-			updateList(value);
-		}
-	}, [items, staticList, init]);
-
 	function callParentOnChange(text: string) {
 		if (onChange) onChange(text);
 
 		if (!text) setList([]);
 	}
+
 	const debouncedFn = useDebounce(callParentOnChange, 500);
-
-	const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const text = event.target.value;
-
-		// if (text.length < 2) return;
-
-		setValue(text);
-		if (!text) {
-			setList([]);
-			callParentOnChange(text);
-			return;
-		}
-
-		debouncedFn(text);
-	};
 
 	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const text = event.target.value;
@@ -131,9 +127,14 @@ export default function AutoComplete(props: AutoCompleteProps) {
 		setValue(text);
 
 		if (text.length) {
-			updateList(text);
+			if (staticList) updateList(text);
+			else {
+				// delay api call
+				debouncedFn(text);
+			}
 		} else {
 			setList([]);
+			if (!staticList) callParentOnChange(text);
 		}
 	};
 
@@ -156,13 +157,6 @@ export default function AutoComplete(props: AutoCompleteProps) {
 		}
 	}
 
-	useEffect(() => {
-		const ulElem = document.getElementById('item-list');
-		const targetLi = document.getElementById(`li-${activeIndex}`); // id tag of the <li> element
-
-		if (ulElem && targetLi) ulElem.scrollTop = targetLi.offsetTop - 50;
-	}, [activeIndex]);
-
 	const handleSubmit = (value: string | Record<string, any>) => {
 		setList([]);
 		setActiveIndex(0);
@@ -175,7 +169,9 @@ export default function AutoComplete(props: AutoCompleteProps) {
 			onSubmit(value);
 		}
 	};
+
 	function handleAutocompleteClick(event: MouseEvent<HTMLDivElement>) {
+		// stop document listener when clicked on the input field
 		event.stopPropagation();
 	}
 
@@ -185,7 +181,7 @@ export default function AutoComplete(props: AutoCompleteProps) {
 				type="text"
 				value={value}
 				onFocus={handleChange}
-				onChange={staticList ? handleChange : handleInputChange}
+				onChange={staticList ? handleChange : handleChange}
 				onKeyDown={onKeyDown}
 				placeholder={placeholder}
 			/>

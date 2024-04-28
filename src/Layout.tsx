@@ -45,6 +45,7 @@ export default function Layout() {
 
 	const fetchList = useCallback(
 		async (text: string) => {
+			// api fetch with search query
 			const { apiEndPoint, searchKey } = data || {};
 			setLoading(true);
 
