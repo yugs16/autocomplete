@@ -1,0 +1,54 @@
+.autocomplete-wrapper {
+	position: relative;
+
+	/* width: 300px; */
+	/* transform: perspective(430px) rotate3d(0, 1, 0, 35deg); */
+}
+
+.autocomplete-wrapper input {
+	padding: 1rem 1.5rem;
+	border: 2px solid gray;
+	border-radius: 1rem;
+	min-width: 300px;
+}
+
+.autocomplete-wrapper input::placeholder {
+	font-size: 1rem;
+}
+
+.items-list {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	/* right: 0; */
+	/* border: 1px solid #ccc; */
+	background: white;
+	z-index: 10;
+	border: 1px solid gray;
+	border-radius: 1rem;
+	list-style: none;
+	padding: 0;
+	padding-left: 0.45rem;
+	margin: 0;
+	min-width: 500px;
+	text-align: left;
+	/* min-height: 100px; */
+	height: 100vh;
+	max-height: 300px;
+	overflow-y: auto;
+	margin-bottom: 100px;
+}
+
+.items-list li {
+	padding: 8px;
+	cursor: pointer;
+}
+
+.items-list li:hover,
+.active {
+	background-color: #e9e9e9;
+}
+
+.hightlight {
+	color: blueviolet;
+}
